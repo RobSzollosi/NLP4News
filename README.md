@@ -9,7 +9,7 @@ I recommend to use this toolkit in combination with a google colab notebook as i
 > pip install bertopic
 > pip install bert-extractive-summarizer
 ```
-In addition to these two modules the NLP4News.py and utils.py should also be uploaded to the same file as the colab notebook.
+In addition to these two modules the NLP4News.py and utils.py should also be uploaded to the same folder as the colab notebook.
 
 ---
 
