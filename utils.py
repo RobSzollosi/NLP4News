@@ -7,13 +7,21 @@ from gensim.utils import simple_preprocess
 import nltk
 import spacy
 
+# The MyDataset class ingests a dataset and manages preprocessing for models
 class MyDataset:
 
+    # Overview: The constructor for the MyDataset class, must be modified to ingest datasets that are organized differently 
+    # Parameters: fn: name of dataset file
+    # Output: n/a
     def __init__(self, fn):
 
+        # NOTE: the three columns in self.dataset must be 'Article', 'Heading', and 'Date'
         self.filename = fn
-        self.dataset = pd.read_csv(fn, encoding="ISO-8859-1")
+        self.dataset = pd.read_csv(fn, encoding="ISO-8859-1") # ISO-8859-1 is used for the example data but is usually uncommon, remove later
 
+    # Overview: Prepares data for lda 
+    # Parameters: n/a
+    # Output: n/a
     def preprocess_for_LDA(self):
 
         data = Preprocess.text_to_list(self.dataset.Article)
@@ -22,6 +30,9 @@ class MyDataset:
 
         return clean_data
 
+    # Overview: Prepares data for bert 
+    # Parameters: n/a
+    # Output: n/a
     def preprocess_for_bert(self):
 
         # clean_data = (Preprocess.remove_special_chars(self.dataset.Article))
@@ -32,14 +43,21 @@ class MyDataset:
         dates = list(self.dataset.Date)
         return clean_data, dates
 
+    # Overview: Prepares data for sentiment analysis 
+    # Parameters: n/a
+    # Output: n/a
     def preprocess_for_VADER(self):
 
         return Preprocess.remove_special_chars(self.dataset.Heading)
 
+    # Overview: Prints dataset head 
+    # Parameters: n/a
+    # Output: n/a
     def show(self):
 
         print(self.dataset.head())
 
+# A class containing statoc functions for preprocessing, uses re, gensim, and nltk
 class Preprocess:
 
     def text_to_list(texts):
