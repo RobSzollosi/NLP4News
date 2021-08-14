@@ -39,6 +39,7 @@ Furthermore each model has a series of functions to visualize and retrieve stati
 | get_topic_word_cloud | topic_id | plots the words in the topic_id specified where the size is associated witht the importance of the word in the topic and saves the image |
 | get_topic_word_dist | topic_id | Gets the distribution of article lengths for the specified topic id |
 | get_sentence_colors | none | visualizes each sentence by coloring its words according to topic and drawing a box around the word according to the entire documents topic and saves the image|
+| get_sne_cluster | none | project the topics distribution into 2d |
 
 ### **2. BERT_Topic_Model**
 | Function | Parameters | Description |
