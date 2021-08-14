@@ -1,4 +1,3 @@
-# from CS4490Z_Thesis.utils import testing_script
 from utils import MyDataset,Preprocess
 import gensim.corpora as corpora
 import gensim
@@ -22,8 +21,14 @@ from nltk.sentiment import SentimentIntensityAnalyzer
 from summarizer import Summarizer
 import nltk
 
+# This is a class for the lda topic model, it first performs a gridsearch to find the optimal number of topics in the lda and then reruns the lda with more iterations to optimize the topics
 class LDA_Topic_Model:
-
+    
+    # Overview: fidns the optimal lda model and stores it as an attribute along with other important lda data
+    # Params: 
+    # - n_comp: an array of integers representing the numbers of topics to be considered
+    # - ld: array of floats between 0 and 1 representing the learning rates to be considered
+    # Output: n/a
     def __init__(self, df, n_comp =[4, 5, 6, 7, 8], ld = [.5, .7, .9] ):
 
         self.data = df
@@ -69,6 +74,9 @@ class LDA_Topic_Model:
         # topics = self.model.print_topics(num_words = 20)
         # for i in topics: print(i)
 
+    # Overview: returns the words contained in each of the topics and their prominence
+    # Params: n/a
+    # Output: returns a dataframe Containing the dominant topic number for each doument along with how much the topic appeared in the article 
     def get_dominant_topics(self):
 
         sent_topics_df = pd.DataFrame()
@@ -97,7 +105,10 @@ class LDA_Topic_Model:
         df_dominant_topic.columns = ['Document_No', 'Dominant_Topic', 'Topic_Perc_Contrib', 'Keywords', 'Text']
 
         return df_dominant_topic
-
+    
+    # Overview: plots a representation of a topic
+    # Params: topic_id: id of the topic to plot
+    # Output: n/a 
     def get_topic_word_cloud(self, topic_id):
 
         cols = [color for name, color in mcolors.TABLEAU_COLORS.items()]
@@ -125,6 +136,9 @@ class LDA_Topic_Model:
         plt.gca().axis('off')
         plt.savefig(f'topic_{topic_id}_word_cloud.jpeg')
 
+    # Overview: plots the occurence of words in a topic
+    # Params: topic_id: id of the topic to plot
+    # Output: n/a
     def get_topic_word_dist(self, topic_id):
 
         cols = [color for name, color in mcolors.TABLEAU_COLORS.items()]
@@ -139,6 +153,9 @@ class LDA_Topic_Model:
         plt.ylabel('Number of Documents')
         plt.savefig(f'topic_{topic_id}_word_distribution.jpeg')
 
+    # Overview: visualizes each sentence by coloring its words according to topic and drawing a box around the word according to the entire documents topic and saves the image
+    # Params: start: first topic to print in range, end: last topic to print in range
+    # Output: n/a
     def get_sentence_colors(self, start, end):
 
         corp = self.corpus[start:end]
@@ -181,7 +198,10 @@ class LDA_Topic_Model:
         plt.tight_layout()
         plt.show() 
         plt.savefig(f'word_and_article_{start}_{end}.png')
-
+    
+    # Overview: project the topics distribution into 2d
+    # Params: n/a
+    # Output: n/a
     def get_sne_cluster(self):
 
         # Get topic weights
@@ -191,8 +211,6 @@ class LDA_Topic_Model:
 
         # Array of topic weights    
         arr = pd.DataFrame(topic_weights).fillna(0).values
-
-        # Keep the well separated points (optional)
         arr = arr[np.amax(arr, axis=1) > 0.35]
 
         # Dominant topic number in each doc
@@ -211,9 +229,13 @@ class LDA_Topic_Model:
         plot.scatter(x=tsne_lda[:,0], y=tsne_lda[:,1], color=mycolors[topic_num])
         show(plot)
         plt.savefig(f't_sne_clustering_lda.png')
-
+        
+# This is a class to store and pass data to the BERTopic model
 class BERT_topic_Model:
 
+    # Overview: Constructor for the BERT_topic_Model class 
+    # Params: texts: preprocessed dataframe of articles, dates: dataframe in datetime format
+    # Output: n/a
     def __init__(self, texts, dates):
 
         self.articles =  texts
@@ -221,23 +243,40 @@ class BERT_topic_Model:
         self.model = BERTopic()
         self.topics, _ = self.model.fit_transform(self.articles)
 
+        
+    # Overview: Constructor for the BERT_topic_Model class 
+    # Params: texts: preprocessed dataframe of articles, dates: dataframe in datetime format
+    # Output: n/a
     def get_num_topics(self):
 
         return len(self.model.get_topic_info())
 
+    # Overview: returns words in each topic in datframe
+    # Params: n/a
+    # Output: n/a
     def get_topic_desc(self):
 
         return (self.model.get_topic_info())
 
+    
+    # Overview: plots clusters of topics according to similarity
+    # Params: n/a
+    # Output: n/a
     def show_topic_clusters(self):
 
         self.model.visualize_topics()
 
+    # Overview: plots the occurence of articles in each topic over time
+    # Params: n/a
+    # Output: n/a
     def show_dynamic_topic_plots(self, num_topics):
 
         topics_over_time = self.model.topics_over_time(self.articles, self.topics, self.dates, nr_bins=20)
         self.model.visualize_topics_over_time(topics_over_time, top_n_topics=num_topics)
 
+    # Overview: gets the top 5 topics in each article and returns that in a dataframe
+    # Params: n/a
+    # Output: dataframe containg 'Topic 1','Topic 2', 'Topic 3', 'Topic 4','Topic 5', where each cell will contain the id of that topic
     def get_topic_table(self):
 
         self.topic_matrix = pd.DataFrame(0, index=np.arange(len(self.articles)), columns=['Topic 1','Topic 2', 'Topic 3', 'Topic 4','Topic 5'])
@@ -258,8 +297,12 @@ class BERT_topic_Model:
 
         return self.topic_matrix
 
+# class for the vader sentiment analyzer
 class VADER_sentiment_analyzer:
 
+    # Overview: constructor class, instantiate sentiment model and measures molarity of articles 
+    # Params: texts: a dataframe of articles
+    # Output: n/a
     def __init__(self, texts):
 
         nltk.download(["names","stopwords","state_union","averaged_perceptron_tagger","vader_lexicon","punkt"])
@@ -275,25 +318,26 @@ class VADER_sentiment_analyzer:
 
         self.polarity_matrix = pd.DataFrame(self.polarity, columns=['Polarity'])
 
+    # Overview: gets the polarity datafram
+    # Params: n/a
+    # Output: returns a 1 x n datafram, column = 'Polarity'
     def get_text_polarity(self):
 
         return self.polarity_matrix
 
+# class for the summarizer model
 class BERT_Summarization_Model:
 
+    # constructor for the class, instantiates model     
     def __init__(self, texts):
 
         self.model = Summarizer()
         self.data = texts
 
-        # abstracts = [''] * len(texts)
-
-        # for idx, i in enumerate(texts):
-
-        #     abstracts[idx] = self.model(i, num_sentences = 3)
-
-        # self.summs = pd.DataFrame(abstracts, columns=['Summarizations'])
-
+    # Overview: summarizes an article
+    # Params: text_id: id of the article, n_snetences: number of sentences to condense to
+    # Output: a string of the summarized text
+    # INPUT TEXT MUST CONTAIN PERIODS
     def get_spec_text_sum(self, text_id, n_sentences):
 
         try:
@@ -304,28 +348,44 @@ class BERT_Summarization_Model:
 
             return -1
 
+# class for the nlp controller, links data ingestion to models
 class NLP_Controller:
 
+    # Overview: constructor class
+    # Params: filename, name of file to be used
+    # Output: n/a   
     def __init__(self,file_name):
 
         self.df = MyDataset(file_name)
         # self.size = len(self.df.dataset['Heading'])
-
+    
+    # Overview: creates bert model
+    # Params: n/a
+    # Output: BERT_topic_Model from the data
     def tm_bert(self):
 
         articles, dates = self.df.preprocess_for_bert()
         return BERT_topic_Model(articles, dates) 
-
+    
+    # Overview: creates an optimized lda model
+    # Params: n/a
+    # Output: LDA_Topic_Model from the data
     def tm_lda(self):
 
         return LDA_Topic_Model(self.df.preprocess_for_LDA())
 
+    # Overview: creates sentiment analysis model
+    # Params: n/a
+    # Output: VADER_sentiment_analyzer from the data
     def sa_vader(self):
 
         # return VADER_sentiment_analyzer(self.df.preprocess_for_bert())
         return VADER_sentiment_analyzer(self.df.dataset.Heading)
         # print(self.df.dataset.Heading)
     
+    # Overview: create a summarization model
+    # Params: n/a
+    # Output: returns the summarized text
     def sum_bert(self):
 
         # articles, _ = self.df.preprocess_for_bert()
@@ -336,6 +396,9 @@ class NLP_Controller:
 
         return self.df
 
+    # Overview: combines topic modelling data together with sentimen analysis data and creates a table of it along with the original data
+    # Params: topic_model: a BERT_topic_Model object, polarity_model: a VADER_sentiment_analyzer object
+    # Output: the above mentioned dataframe
     def get_full_table(self,topic_model, polarity_model):
 
         self.df.dataset.reset_index(drop=True, inplace=True)
@@ -351,6 +414,12 @@ class NLP_Controller:
 
         return self.final_data
 
+    # Overview: combines topic modelling data together with sentimen analysis data for a topic and plots it over time 
+    # Params: 
+    # - topic_model: a BERT_topic_Model object, 
+    # - polarity_model: a VADER_sentiment_analyzer object
+    # -  topic_num: the topic id to be plotted
+    # Output: the above mentioned dataframe
     def get_topic_polarity_plots(self,topic_num, topic_model, polarity_model):
 
         if (topic_num < topic_model.get_num_topics() and topic_model.get_num_topics() > -1):
@@ -358,7 +427,6 @@ class NLP_Controller:
             final_data = self.get_full_table(topic_model, polarity_model)
             top_articles = [final_data.loc[(final_data['Topic 1'] == topic_num)],final_data.loc[(final_data['Topic 2'] == topic_num)],final_data.loc[(final_data['Topic 3'] == topic_num)],final_data.loc[(final_data['Topic 4'] == topic_num)],final_data.loc[(final_data['Topic 5'] == topic_num)]]
             articles_from_topic = pd.concat(top_articles, axis = 0)
-
             plt.figure(figsize=(25,10))
             plt.scatter(articles_from_topic['Date'], articles_from_topic['Polarity'])
             plt.show()
@@ -367,14 +435,7 @@ class NLP_Controller:
             plt.cla()
             plt.close()
 
-
         else: print('invalid topic number')
-
-
-
-
-
-    
 
 
 def lda_testing_script():
@@ -416,10 +477,6 @@ def main():
     # bert_testing_script()
     # vader_testing_script()
     # bert_s_testing_script()
-
-    # vader_model = NLP_Controller('Articles.csv').sa_vader()
-    model = NLP_Controller('Articles.csv').tm_bert()
-
 
 if __name__=="__main__":
 
