@@ -473,7 +473,7 @@ def bert_s_testing_script():
 
 def main():
 
-    # lda_testing_script()
+    lda_testing_script()
     # bert_testing_script()
     # vader_testing_script()
     # bert_s_testing_script()
